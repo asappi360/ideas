@@ -1,2 +1,4 @@
 # ideas
-Colección de programas que realizo para mejorar y poner aprueba mis conocimientos mientras estudio Ciencia de Datos en la universidad
+Colección de programas para entrenar la lógica de programación. Busco aprender y poner a prueba mis conocimientos mientras estudio Ciencia de Datos en la universidad.
+
+#NoIA
