@@ -1,0 +1,84 @@
+---
+title: "BnB_datalab"
+author: "FJavierBailachCastilla"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r}
+library(readr)
+library(readxl)
+library(stringr)
+```
+
+## Including Plots
+```{r}
+df <- read_csv("data/datalab_export_2026-08-30 16_36_58.csv")
+
+df <- df %>%
+  mutate(last_review = as.Date(last_review, "%B %d %Y")) 
+# ¿Cuáles son las fechas de las reseñas más antiguas y más recientes? ¿Y más nuevas?
+reseñas_viejas <- df %>% arrange(desc(last_review)) %>% slice_min(last_review)
+reseñas_nuevas <- df %>% arrange(last_review) %>% slice_max(last_review)
+
+# ¿Cuántos de los anuncios son habitaciones privadas? - contar en col roomtype el numero de private room que existen
+privadas <- df %>% filter(str_detect(room_type, "(?i)^private\\s*room$")) %>% count()
+
+
+# ¿Cuál es el precio medio del anuncio para todas las habitaciones (redondeado al céntimo más cercano)?
+df <- df %>% mutate(price = as.numeric(gsub("[^0-9]", "", price)))
+media_precio <- df %>% summarise(media_precio = round(mean(price, na.rm = TRUE))) #138dolares
+
+
+# Combina estos cuatro valores en un único tibble llamado review_dates con cuatro columnas: first_reviewed, last_reviewed, nb_private_rooms y avg_price. El tibble solo debe contener una fila de valores.
+review_dates <- tibble(
+  first_reviewed = min(df$last_review),
+  last_reviewed  = max(df$last_review),
+  nb_private_rooms = privadas$n,
+  avg_price = media_precio$media_precio
+)
+
+
+```
+```{r}
+
+df <- read_csv("data/datalab_export_2026-08-30 16_36_58.csv")
+
+
+# ¿Cuáles son las fechas de las reseñas más antiguas y más recientes?
+df <- df %>% mutate(last_review = as.Date(last_review, "%B %d %m"))
+
+antiguas <- df %>% slice_min(last_review) %>% select(last_review) as.numeric()
+
+
+recientes <- df %>% slice_max(last_review) %>% select(last_review) %>% as.numeric()
+
+
+# ¿Cuántos de los anuncios son habitaciones privadas? - contar en col roomtype el numero de private room que existen
+tipo <- c("Private Room", "private room", "PRIVATE ROOM")
+privadas <- df %>% select(room_type) %>% filter(str_detect(room_type, "(?i)^private\\s*room$")) %>%count() %>% as.numeric()
+
+# ¿Cuál es el precio medio del anuncio para todas las habitaciones (redondeado al céntimo más cercano)?
+media <- round(mean())
+df <- df %>% mutate(price = as.numeric(gsub("[^0-9]", "", price)))
+medio <- round(mean(df$price))
+
+# Combina estos cuatro valores en un único tibble llamado review_dates con cuatro columnas: first_reviewed, last_reviewed, nb_private_rooms y avg_price. El tibble solo debe contener una fila de valores.
+nombres <- names(df)
+review_dates <- tibble(first_reviewed = antiguas, last_reviewed = recientes, nb_private_rooms = privadas, avg_price = medio)
+anyNA(df)
+
+```
+
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
