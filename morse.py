@@ -13,9 +13,10 @@
  
 """
 import unicodedata
+import re
 
 diccionario = dict()
-diccionario[" "] = "-. " #entre letras
+diccionario[" "] = "|" #entre letras
 diccionario["  "] = ". . . . ." #entre palabras
 diccionario["A"] = ". _"
 diccionario["B"] = "_ . . ."
@@ -47,6 +48,7 @@ diccionario["Z"] = "_ _ . ."
 morse_a_letra = {valor: clave for clave, valor in diccionario.items()}
 
 frase = "Hace un buen día para estar en Vulture"
+codigo = ". . . .|. _|_ . _ .|.|  . . _|_ .|  _ . . .|. . _|.|_ .|  _ . .|. .|. _|  . _ _ .|. _|. _ .|. _|  .|. . .|_|. _|. _ .|  .|_ .|  . . . _|. . _|. _ . .|_|. . _|. _ .|.|  "
 
 def normalizar(frase):
     nfkd = unicodedata.normalize('NFD', frase)
@@ -59,69 +61,75 @@ def normalizar(frase):
     return sin_acentos.upper()
 
 
-def procesar(texto:str) -> str:
+def a_morse(frase:str) -> str:
+    aux = ""  # frase traducida completa
     
-    texto = normalizar(texto)
-    res = ""
-    
-    for char in texto:
-        if char in diccionario:
-            res += "-. " + diccionario[char]
-        else:
-            res += "?"
-    
-    
-    return res
+    for palabra in frase.split():      # bucle de palabras
+        aux2 = ""                      # traducción de una palabra
 
-def natural(morse:str)-> str:
-    res = ""
-    palabras = morse.split("  ")
-    for palabra in palabras:
-        letras = morse.split("  ")
-        
-        for simbolo in letras:
-            if simbolo in morse_a_letra:
-                res += "-. " + morse_a_letra[simbolo]
+        for letra in palabra:          # bucle de letras
+            if letra in diccionario:   # HACE  UN  BUEN  ...
+                aux2 += diccionario[letra] + "|"
             else:
-                res += "?"  # símbolo desconocido
-        
-        res += " "  # espacio entre palabras
-        
-    return res.strip()
+                aux2 += "? "
 
-def traduccion(morse:str) -> str:
-    traduccion = []
-    for palabra in morse.split("-. "):
-        
-        for char in palabra:
-            i = 0
-            while i < len(palabra):
-                i += 1
-                if char in diccionario.values():
-                    traduccion.append(morse_a_letra[char])
-                else:
-                    traduccion.append("?")
-            else:
-                traduccion.append("  ")
-                
-    return traduccion
+        aux += aux2 + "  "             # doble espacio entre palabras
 
+    return aux
+
+
+def a_natural(codigo:str) -> str:  
+    aux = "" # traducción
+    # palabras = codigo.split("  ")
+    # letras = palabras.split("-. ")
     
-# def traduccion(morse:str) -> str:
+    for string in codigo.split("  "):
+        aux2= ""
+        for cod in string.split("|"):
+            if cod in morse_a_letra.keys():
+                aux2 += morse_a_letra[cod]
+            else:
+                aux2 += " "
+        aux += aux2
+        
+    return aux
 
-    # # traduccion = "".join(char for char in morse if char in diccionario.items())
-    # traduccion = morse.split()
-    # # el problema es que todos los carácteres los toma como un "." e imprime E o T "_"
-    # # hay que separar las palabras de alguna forma
-    # for char in morse:
-    #     if char in morse_a_letra.keys():
-    #          traduccion += morse_a_letra[char]
-    #     else:
-    #         traduccion += "?"
-             
-    # return traduccion
+def natural_regex(frase:str) -> bool:
+    if not isinstance(frase, str):
+        raise TypeError("El parámetro de la cadena debe ser str")
+    
+    natural = r"^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑüÜ¿¡.,;:!?()\-\s]+$"
+    prueba = bool(re.match(natural, frase))
+    
+    return prueba
 
-print(procesar(frase))
-frase_2 = procesar(frase)
-print(traduccion(frase_2))
-# print(natural(frase_2))
+def morse_regex(frase:str) -> bool:
+    if not isinstance(frase, str):
+        raise TypeError("El parámetro de la cadena debe ser str")
+        
+    morse = r"^[-._ |]+$"
+    prueba = bool(re.match(morse, frase))
+    
+    return prueba
+
+def traduccion(frase:str) -> str:
+    mensaje = ""
+    aux=""
+    if natural_regex(frase):
+        aux = normalizar(frase)
+        mensaje = a_morse(aux)
+
+    else:
+        if morse_regex(frase):
+            mensaje = a_natural(frase)
+        
+    return mensaje
+
+# print(detectar(frase))
+# print(detectar(codigo))
+# print(a_morse(normalizar(frase)))
+# print(a_natural(a_morse(normalizar(frase))))
+# print(detectar(codigo))
+
+print(traduccion(frase))
+print(traduccion(codigo))
